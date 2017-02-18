@@ -83,26 +83,18 @@ def sub_group_exclusion(values):
         the values dictionary with the Sub-group exclusion rule applied.
     """
 
-    import copy
-
     for unit in unitlist:
         for digit in '123456789':
             # Collect the unit boxes, where a certain number presents.
-            found = []
-            for box in unit:
-                if digit in values[box]:
-                    found.append(box)
+            found = [box for box in unit if digit in values[box]]
             # If there is more, then one, then worth to check other units too.
             if len(found) > 1:
                 for otherUnit in unitlist:
                     if unit != otherUnit:
                         # Check, if all the boxes - containing the number - are in the other unit too.
-                        contains = 0
-                        for element in found:
-                            if element in otherUnit:
-                                contains += 1
+                        contains = [element for element in found if element in otherUnit]
                         # If yes, then that number shouldn't be in other boxes - in the other unit.
-                        if contains == len(found):
+                        if len(contains) == len(found):
                             for otherBox in otherUnit:
                                 if not (otherBox in found):
                                     values[otherBox] = values[otherBox].replace(digit,'')
