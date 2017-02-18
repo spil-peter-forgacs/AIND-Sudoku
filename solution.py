@@ -2,6 +2,28 @@
 Solve a Sudoku
 """
 
+# Global variables.
+
+rows = 'ABCDEFGHI'
+cols = '123456789'
+# toSize = 10 in case of 9x9 Sudoku puzzle
+toSize = len(rows)+1
+
+def cross(A, B):
+    "Cross product of elements in A and elements in B."
+    return [s+t for s in A for t in B]
+
+boxes = cross(rows, cols)
+
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+diagonal_units = [[rows[i-1] + str(i) for i in range(1, toSize)], [rows[i-1] + str(toSize - i) for i in range(1, toSize)]]
+unitlist = row_units + column_units + square_units + diagonal_units
+
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+
 assignments = []
 
 def assign_value(values, box, value):
@@ -26,9 +48,28 @@ def naked_twins(values):
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
 
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [s+t for s in A for t in B]
+    for unit in unitlist:
+        for box in unit:
+            currentValues = values[box]
+            # Check, if it has two numbers. So possible twin value.
+            if len(currentValues) == 2:
+                # Check, if there is a twin.
+                twins = 0
+                # Collect not twin boxes.
+                others = []
+                for otherBox in unit:
+                    if currentValues == values[otherBox]:
+                        twins += 1
+                    else:
+                        others.append(otherBox)
+
+                # Remove twin values from other boxes.
+                if twins == 2:
+                    for otherBox in others:
+                        for currentValue in currentValues:
+                            values[otherBox] = values[otherBox].replace(currentValue, "")
+
+    return values
 
 def grid_values(grid):
     """
@@ -86,36 +127,15 @@ def eliminate(values):
         Resulting Sudoku in dictionary form after eliminating values.
     """
 
-    import copy
-    result = copy.deepcopy(values)
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    for box in solved_values:
+        digit = values[box]
+        for peer in peers[box]:
+            values[peer] = values[peer].replace(digit,'')
+    
+    values = naked_twins(values)
 
-    # All elements.
-    for i in boxes:
-        current = values[i]
-
-        # If the current element has only one number.
-        if len(current) == 1:
-            currentRow = i[0]
-            currentCol = i[1]
-
-            # Filter out cols.
-            for col in cols:
-                if col != currentCol:
-                    result[currentRow + col] = result[currentRow + col].replace(current, "")
-            # Filter out rows.
-            for row in rows:
-                if row != currentRow:
-                    result[row + currentCol] = result[row + currentCol].replace(current, "")
-            # Filter out squares.
-            # Find the square unit.
-            for square in square_units:
-                if i in square:
-                    # Filter the square.
-                    for squareElement in square:
-                        if squareElement != i:
-                            result[squareElement] = result[squareElement].replace(current, "")
-
-    return result
+    return values
 
 def only_choice(values):
     """
@@ -128,27 +148,12 @@ def only_choice(values):
     Output: Resulting Sudoku in dictionary form after filling in only choices.
     """
 
-    import copy
-    result = copy.deepcopy(values)
-
-    # Check all unit lists.
     for unit in unitlist:
-        # Check all available elements.
-        # From 1 to 9.
-        for i in range(1, len(cols)+1):
-            found = ''
-            unique = True
-            for unitElement in unit:
-                if str(i) in values[unitElement]:
-                    if found == '':
-                        found = unitElement
-                    else:
-                        unique = False
-            # If the element is found and unique, then change the value.
-            if unique and found != '':
-                result[found] = str(i)
-
-    return result
+        for digit in '123456789':
+            dplaces = [box for box in unit if digit in values[box]]
+            if len(dplaces) == 1:
+                values[dplaces[0]] = digit
+    return values
 
 def reduce_puzzle(values):
     """
@@ -220,31 +225,6 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
-
-    # Global variables.
-
-    global rows
-    global cols
-    global boxes
-    global row_units
-    global column_units
-    global square_units
-    global unitlist
-    global units
-    global peers
-
-    rows = 'ABCDEFGHI'
-    cols = '123456789'
-
-    boxes = cross(rows, cols)
-
-    row_units = [cross(r, cols) for r in rows]
-    column_units = [cross(rows, c) for c in cols]
-    square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-    unitlist = row_units + column_units + square_units
-
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
     
     # Solve the puzzle
     return search(grid_values(grid))
