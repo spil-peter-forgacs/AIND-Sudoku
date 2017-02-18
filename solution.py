@@ -71,6 +71,44 @@ def naked_twins(values):
 
     return values
 
+def sub_group_exclusion(values):
+    """
+    Eliminate values using the Sub-group exclusion rule.
+    It can happen, when e.g. a square unit has a number in only on one row or column.
+    In this case the other boxes in the row or column can't have this number.
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        the values dictionary with the Sub-group exclusion rule applied.
+    """
+
+    import copy
+
+    for unit in unitlist:
+        for digit in '123456789':
+            # Collect the unit boxes, where a certain number presents.
+            found = []
+            for box in unit:
+                if digit in values[box]:
+                    found.append(box)
+            # If there is more, then one, then worth to check other units too.
+            if len(found) > 1:
+                for otherUnit in unitlist:
+                    if unit != otherUnit:
+                        # Check, if all the boxes - containing the number - are in the other unit too.
+                        contains = 0
+                        for element in found:
+                            if element in otherUnit:
+                                contains += 1
+                        # If yes, then that number shouldn't be in other boxes - in the other unit.
+                        if contains == len(found):
+                            for otherBox in otherUnit:
+                                if not (otherBox in found):
+                                    values[otherBox] = values[otherBox].replace(digit,'')
+
+    return values
+
 def grid_values(grid):
     """
     Convert grid into a dict of {square: char} with '123456789' for empties. E.g.:
@@ -134,6 +172,7 @@ def eliminate(values):
             values[peer] = values[peer].replace(digit,'')
     
     values = naked_twins(values)
+    values = sub_group_exclusion(values)
 
     return values
 
