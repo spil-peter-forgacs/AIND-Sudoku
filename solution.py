@@ -67,7 +67,8 @@ def naked_twins(values):
                 if twins == 2:
                     for otherBox in others:
                         for currentValue in currentValues:
-                            values[otherBox] = values[otherBox].replace(currentValue, "")
+                            # Assign and visualize
+                            assign_value(values, otherBox, values[otherBox].replace(currentValue,''))
 
     return values
 
@@ -97,11 +98,12 @@ def sub_group_exclusion(values):
                         if len(contains) == len(found):
                             for otherBox in otherUnit:
                                 if not (otherBox in found):
-                                    values[otherBox] = values[otherBox].replace(digit,'')
+                                    # Assign and visualize
+                                    assign_value(values, otherBox, values[otherBox].replace(digit,''))
 
     return values
 
-def grid_values(grid):
+def grid_values(grid, basicFormat=False):
     """
     Convert grid into a dict of {square: char} with '123456789' for empties. E.g.:
     return {
@@ -124,8 +126,7 @@ def grid_values(grid):
 
     for i in range(len(boxes)):
         current = grid[i]
-        result[boxes[i]] = current if current != "." else cols
-        #result = assign_value(result, boxes[i], current if current != "." else cols)
+        result[boxes[i]] = current if current != "." or basicFormat else cols
 
     return result
 
@@ -161,7 +162,8 @@ def eliminate(values):
     for box in solved_values:
         digit = values[box]
         for peer in peers[box]:
-            values[peer] = values[peer].replace(digit,'')
+            # Assign and visualize
+            assign_value(values, peer, values[peer].replace(digit,''))
     
     values = naked_twins(values)
     values = sub_group_exclusion(values)
@@ -183,7 +185,8 @@ def only_choice(values):
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
-                values[dplaces[0]] = digit
+                # Assign and visualize
+                assign_value(values, dplaces[0], digit)
     return values
 
 def reduce_puzzle(values):
@@ -238,12 +241,13 @@ def search(values):
 
     # Now use recursion to solve each one of the resulting sudokus, and if one returns a value (not False), return that answer!
     for i in values[fewest]:
-        import copy
-        result = copy.deepcopy(values)
+        result = values.copy()
 
-        result[fewest] = i
+        # Assign and visualize
+        assign_value(result, fewest, i)
+
         solution = search(result)
-        
+
         if solution:
             return solution
 
@@ -266,7 +270,15 @@ if __name__ == '__main__':
     """
 
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+
+    print("Original state:")
+    basicFormat = True
+    display(grid_values(diag_sudoku_grid, basicFormat))
+
+    solution = solve(diag_sudoku_grid)
+    if solution:
+        print("Solution:")
+        display(solution)
 
     try:
         from visualize import visualize_assignments
