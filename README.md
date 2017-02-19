@@ -4,6 +4,7 @@
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
 A: When we find the naked twins we remove the twin values from other squares in the same unit.
+In other words: we enforcing the constraint that no squares outside the two naked twins squares - in the same unit - can contain the twin values.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
