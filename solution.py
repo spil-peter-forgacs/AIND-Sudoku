@@ -227,6 +227,7 @@ def search(values):
     if values == False:
         return False
 
+    # Check, if it was a solution.
     solved_values = len([box for box in values.keys() if len(values[box]) == 1])
     if solved_values == len(boxes):
         return values
