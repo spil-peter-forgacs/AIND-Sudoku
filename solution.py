@@ -158,17 +158,24 @@ def eliminate(values):
         Resulting Sudoku in dictionary form after eliminating values.
     """
 
-    solved_values = [box for box in values.keys() if len(values[box]) == 1]
-    for box in solved_values:
-        digit = values[box]
-        for peer in peers[box]:
-            # Assign and visualize
-            assign_value(values, peer, values[peer].replace(digit,''))
-    
-    values = naked_twins(values)
-    values = sub_group_exclusion(values)
+    result = values.copy()
 
-    return values
+    # All elements.
+    for box in boxes:
+        digit = values[box]
+
+        # If the current element has only one number.
+        if len(digit) == 1:
+            for peer in peers[box]:
+                # Assign and visualize
+                assign_value(result, peer, result[peer].replace(digit,''))
+
+    result = naked_twins(result)
+    result = sub_group_exclusion(result)
+
+    return result
+
+
 
 def only_choice(values):
     """
@@ -181,13 +188,23 @@ def only_choice(values):
     Output: Resulting Sudoku in dictionary form after filling in only choices.
     """
 
+    result = values.copy()
+
     for unit in unitlist:
-        for digit in '123456789':
-            dplaces = [box for box in unit if digit in values[box]]
-            if len(dplaces) == 1:
-                # Assign and visualize
-                assign_value(values, dplaces[0], digit)
-    return values
+        # All numbers.
+        for i in range(1, 10):
+            digit = str(i)
+            found = ''
+            unique = True
+            for unitElement in unit:
+                if digit in values[unitElement]:
+                    unique = (found == '')
+                    found = unitElement
+            # Is this number found and unique?
+            if unique and found != '':
+                result[found] = digit
+
+    return result
 
 def reduce_puzzle(values):
     """
