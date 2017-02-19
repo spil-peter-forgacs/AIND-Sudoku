@@ -158,8 +158,6 @@ def eliminate(values):
         Resulting Sudoku in dictionary form after eliminating values.
     """
 
-    result = values.copy()
-
     # All elements.
     for box in boxes:
         digit = values[box]
@@ -168,12 +166,12 @@ def eliminate(values):
         if len(digit) == 1:
             for peer in peers[box]:
                 # Assign and visualize
-                assign_value(result, peer, result[peer].replace(digit,''))
+                assign_value(values, peer, values[peer].replace(digit,''))
 
-    result = naked_twins(result)
-    result = sub_group_exclusion(result)
+    values = naked_twins(values)
+    values = sub_group_exclusion(values)
 
-    return result
+    return values
 
 
 
@@ -188,11 +186,9 @@ def only_choice(values):
     Output: Resulting Sudoku in dictionary form after filling in only choices.
     """
 
-    result = values.copy()
-
     for unit in unitlist:
         # All numbers.
-        for i in range(1, 10):
+        for i in range(1, toSize):
             digit = str(i)
             found = ''
             unique = True
@@ -202,9 +198,10 @@ def only_choice(values):
                     found = unitElement
             # Is this number found and unique?
             if unique and found != '':
-                result[found] = digit
+                # Assign and visualize
+                assign_value(values, found, digit)
 
-    return result
+    return values
 
 def reduce_puzzle(values):
     """
